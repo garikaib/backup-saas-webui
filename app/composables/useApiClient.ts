@@ -5,16 +5,20 @@ export const useApiClient = () => {
     return $fetch.create({
         baseURL: config.public.apiBase,
         onRequest({ options }) {
-            if (authStore.token) {
-                options.headers = options.headers || {}
-                // @ts-ignore
-                options.headers.Authorization = `Bearer ${authStore.token}`
+            const currentToken = authStore.token
+            if (currentToken) {
+                const headers = new Headers(options.headers as HeadersInit)
+                headers.set('Authorization', `Bearer ${currentToken}`)
+                options.headers = headers
             }
         },
         onResponseError({ response }) {
-            if (response.status === 401) {
+            // Only logout on 401 if the user was authenticated and not in login flow
+            if (response.status === 401 && authStore.isAuthenticated && !authStore.loggingIn) {
                 authStore.logout()
             }
         }
     })
 }
+
+

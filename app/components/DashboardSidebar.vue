@@ -1,25 +1,65 @@
 <script setup lang="ts">
-const links = [
-    {
-        label: 'Overview',
-        type: 'label'
-    },
-    {
-        label: 'Dashboard',
-        icon: 'i-heroicons-squares-2x2',
-        to: '/'
-    },
-    {
-        label: 'Management',
-        type: 'label',
-        class: 'mt-4'
-    },
-    {
-        label: 'Nodes',
-        icon: 'i-heroicons-server',
-        to: '/nodes'
+import type { NavigationMenuItem } from '@nuxt/ui'
+
+const authStore = useAuthStore()
+
+const links = computed<NavigationMenuItem[]>(() => {
+    const items: NavigationMenuItem[] = [
+        {
+            label: 'Overview',
+            type: 'label'
+        },
+        {
+            label: 'Dashboard',
+            icon: 'i-heroicons-squares-2x2',
+            to: '/'
+        },
+        {
+            label: 'Management',
+            type: 'label',
+            class: 'mt-4'
+        },
+        {
+            label: 'Nodes',
+            icon: 'i-heroicons-server',
+            to: '/nodes'
+        },
+        {
+            label: 'Users',
+            icon: 'i-heroicons-users',
+            to: '/users'
+        }
+    ]
+
+    // Only show Activity Logs for Node Admin+
+    if (authStore.isNodeAdmin) {
+        items.push({
+            label: 'Activity Logs',
+            icon: 'i-heroicons-clock',
+            to: '/activity-logs'
+        })
     }
-] as const
+
+    items.push(
+        {
+            label: 'Settings',
+            type: 'label',
+            class: 'mt-4'
+        },
+        {
+            label: 'Themes',
+            icon: 'i-heroicons-swatch',
+            to: '/settings'
+        },
+        {
+            label: 'Profile',
+            icon: 'i-heroicons-user-circle',
+            to: '/profile'
+        }
+    )
+
+    return items
+})
 </script>
 
 <template>

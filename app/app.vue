@@ -18,7 +18,7 @@ useHead({
 })
 
 useSeoMeta({
-  titleTemplate: '%s - Nuxt SaaS template',
+  titleTemplate: '%s - Backup Admin',
   ogImage: 'https://ui.nuxt.com/assets/templates/nuxt/saas-light.png',
   twitterImage: 'https://ui.nuxt.com/assets/templates/nuxt/saas-light.png',
   twitterCard: 'summary_large_image'
@@ -59,6 +59,9 @@ provide('navigation', navigation)
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+
+    <!-- Global Dialog Provider -->
+    <DialogProvider />
 
     <ClientOnly>
       <LazyUContentSearch
