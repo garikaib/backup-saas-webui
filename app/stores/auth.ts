@@ -33,14 +33,18 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    async function login(username: string, password: string) {
+    async function login(username: string, password: string, turnstileToken?: string) {
         const config = useRuntimeConfig()
         loggingIn.value = true
         try {
+            const body: Record<string, string> = { username, password }
+            if (turnstileToken) {
+                body.turnstile_token = turnstileToken
+            }
             const response = await $fetch<{ access_token: string }>('/auth/login', {
                 baseURL: config.public.apiBase,
                 method: 'POST',
-                body: { username, password }
+                body
             })
             setToken(response.access_token)
             await fetchUser()

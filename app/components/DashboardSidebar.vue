@@ -58,6 +58,15 @@ const links = computed<NavigationMenuItem[]>(() => {
         }
     )
 
+    // Only show Admin Settings for Super Admin
+    if (authStore.isSuperAdmin) {
+        items.push({
+            label: 'Admin Settings',
+            icon: 'i-heroicons-cog-6-tooth',
+            to: '/admin-settings'
+        })
+    }
+
     return items
 })
 </script>

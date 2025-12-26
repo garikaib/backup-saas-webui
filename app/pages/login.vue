@@ -78,11 +78,20 @@
               />
             </UFormField>
 
+            <!-- Turnstile Widget -->
+            <div v-if="turnstileEnabled" class="flex justify-center">
+              <div 
+                ref="turnstileContainer"
+                class="cf-turnstile"
+              ></div>
+            </div>
+
             <UButton 
               type="submit" 
               block 
               size="lg"
               :loading="loading"
+              :disabled="turnstileEnabled && !turnstileToken"
               class="mt-8 transition-all duration-300"
             >
               <template v-if="!loading">
@@ -118,8 +127,15 @@ useSeoMeta({
 })
 
 const authStore = useAuthStore()
+const config = useRuntimeConfig()
 const toast = useToast()
 const loading = ref(false)
+
+// Turnstile
+const turnstileEnabled = ref(false)
+const turnstileSiteKey = ref('')
+const turnstileToken = ref('')
+const turnstileContainer = ref<HTMLElement | null>(null)
 
 const schema = z.object({
   username: z.string().min(1, 'Username is required'),
@@ -133,22 +149,90 @@ const state = reactive({
   password: ''
 })
 
+// Fetch Turnstile config
+onMounted(async () => {
+  try {
+    const response = await $fetch<{ site_key: string; enabled: boolean }>('/settings/public/turnstile-site-key', {
+      baseURL: config.public.apiBase
+    })
+    turnstileEnabled.value = response.enabled
+    turnstileSiteKey.value = response.site_key
+    
+    if (response.enabled && response.site_key) {
+      await loadTurnstile()
+    }
+  } catch (error) {
+    console.error('Failed to load Turnstile config:', error)
+  }
+})
+
+async function loadTurnstile() {
+  // Load Turnstile script if not already loaded
+  if (!document.querySelector('script[src*="turnstile"]')) {
+    const script = document.createElement('script')
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+    script.async = true
+    script.defer = true
+    document.head.appendChild(script)
+    
+    await new Promise(resolve => {
+      script.onload = resolve
+    })
+  }
+
+  // Wait for render and init
+  await nextTick()
+  
+  // Render Turnstile widget
+  if (turnstileContainer.value && (window as any).turnstile) {
+    (window as any).turnstile.render(turnstileContainer.value, {
+      sitekey: turnstileSiteKey.value,
+      callback: (token: string) => {
+        turnstileToken.value = token
+      },
+      'expired-callback': () => {
+        turnstileToken.value = ''
+      },
+      'error-callback': () => {
+        turnstileToken.value = ''
+        toast.add({ title: 'Captcha Error', description: 'Please reload the page', color: 'error' })
+      }
+    })
+  }
+}
+
 async function onSubmit(payload: FormSubmitEvent<Schema>) {
+  // Check Turnstile if enabled
+  if (turnstileEnabled.value && !turnstileToken.value) {
+    toast.add({ title: 'Please complete the captcha', color: 'warning' })
+    return
+  }
+
   loading.value = true
   try {
-    await authStore.login(payload.data.username, payload.data.password)
+    await authStore.login(
+      payload.data.username, 
+      payload.data.password,
+      turnstileEnabled.value ? turnstileToken.value : undefined
+    )
     toast.add({ 
       title: 'Welcome back!', 
       description: 'You have successfully logged in.', 
       color: 'success' 
     })
     navigateTo('/')
-  } catch (error) {
+  } catch (error: any) {
+    const message = error?.data?.detail || 'Invalid username or password.'
     toast.add({ 
       title: 'Login Failed', 
-      description: 'Invalid username or password.', 
+      description: message, 
       color: 'error' 
     })
+    // Reset Turnstile on failure
+    if ((window as any).turnstile && turnstileContainer.value) {
+      (window as any).turnstile.reset(turnstileContainer.value)
+      turnstileToken.value = ''
+    }
   } finally {
     loading.value = false
   }
