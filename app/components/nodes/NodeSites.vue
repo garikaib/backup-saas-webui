@@ -257,7 +257,7 @@ const columns = [
                             color="primary"
                             icon="i-heroicons-check-circle"
                         >
-                            Validate & Add
+                            {{ adding ? 'Validating...' : 'Import Site' }}
                         </UButton>
                     </div>
                 </template>
