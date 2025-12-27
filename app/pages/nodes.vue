@@ -41,7 +41,7 @@ async function approveNode(id: number) {
          <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" @click="() => refresh()" />
     </div>
 
-    <!-- Grid Layout -- >
+    <!-- Grid Layout -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <NodesNodeCard
             v-for="node in (Array.isArray(nodes) ? nodes : [])"
