@@ -183,39 +183,53 @@ const columns = [
             </template>
         </UTable>
 
-        <!-- Modals -->
-        <UModal v-model="isScanModalOpen" title="Scan Results" description="Sites detected on this node">
-            <UCard>
-                <div v-if="scanResults.length === 0" class="text-center py-8 text-gray-500">
-                    No new sites detected
+        <!-- Inline Action Panels -->
+        
+        <!-- Scan Results -->
+        <UCard v-if="isScanModalOpen" class="mt-4 bg-gray-50 dark:bg-gray-800/50">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h4 class="font-medium">Scan Results</h4>
+                    <p class="text-xs text-gray-500">Found {{ scanResults.length }} potential sites in {{ scannedPath }}</p>
                 </div>
-                <div v-else class="space-y-3 max-h-[60vh] overflow-y-auto">
-                    <div v-for="site in scanResults" :key="site.path" class="p-3 border rounded dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
-                        <div>
-                            <div class="font-medium">{{ site.name || 'Unknown' }}</div>
-                            <div class="text-xs text-gray-500">{{ site.path }}</div>
-                        </div>
-                        <UButton size="xs" label="Import" @click="importSite(site)" :loading="importing === site.path" />
-                    </div>
-                </div>
-            </UCard>
-        </UModal>
+                <UButton icon="i-heroicons-x-mark" color="neutral" variant="ghost" size="xs" @click="isScanModalOpen = false" />
+            </div>
 
-        <UModal v-model="isManualImportOpen" title="Add Site" description="Manually register a site on this node">
-            <UCard>
-                <form @submit.prevent="addManualSite" class="space-y-4">
-                    <UFormField label="Path" required>
-                        <UInput v-model="manualSite.path" placeholder="/var/www/..." />
-                    </UFormField>
-                    <UFormField label="Name">
-                        <UInput v-model="manualSite.name" placeholder="My Site" />
-                    </UFormField>
-                    <div class="flex justify-end gap-2">
-                        <UButton color="neutral" variant="ghost" @click="isManualImportOpen = false">Cancel</UButton>
-                        <UButton type="submit" :loading="adding">Add</UButton>
+            <div v-if="scanResults.length === 0" class="text-center py-6 text-gray-500">
+                <UIcon name="i-heroicons-magnifying-glass" class="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                <p>No new WordPress sites detected.</p>
+            </div>
+            
+            <div v-else class="space-y-3 max-h-[40vh] overflow-y-auto">
+                <div v-for="site in scanResults" :key="site.path" class="p-3 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded flex justify-between items-center">
+                    <div class="overflow-hidden mr-4">
+                        <div class="font-medium truncate">{{ site.name || 'Unknown' }}</div>
+                        <div class="text-xs text-gray-500 truncate" :title="site.path">{{ site.path }}</div>
                     </div>
-                </form>
-            </UCard>
-        </UModal>
+                    <UButton size="xs" label="Import" @click="importSite(site)" :loading="importing === site.path" />
+                </div>
+            </div>
+        </UCard>
+
+        <!-- Manual Add Form -->
+        <UCard v-if="isManualImportOpen" class="mt-4 bg-gray-50 dark:bg-gray-800/50">
+            <div class="flex justify-between items-start mb-4">
+                <h4 class="font-medium">Add Manual Site</h4>
+                <UButton icon="i-heroicons-x-mark" color="neutral" variant="ghost" size="xs" @click="isManualImportOpen = false" />
+            </div>
+
+            <form @submit.prevent="addManualSite" class="space-y-4">
+                <UFormField label="Path" required help="Absolute path to WordPress root">
+                    <UInput v-model="manualSite.path" placeholder="/var/www/..." icon="i-heroicons-folder" />
+                </UFormField>
+                <UFormField label="Name" help="Friendly name for display">
+                    <UInput v-model="manualSite.name" placeholder="My Site" icon="i-heroicons-globe-alt" />
+                </UFormField>
+                <div class="flex justify-end gap-2 pt-2">
+                    <UButton color="neutral" variant="ghost" @click="isManualImportOpen = false">Cancel</UButton>
+                    <UButton type="submit" :loading="adding" color="primary">Add Site</UButton>
+                </div>
+            </form>
+        </UCard>
     </div>
 </template>
