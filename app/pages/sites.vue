@@ -162,6 +162,8 @@ function stopPolling(siteId: number) {
   }
 }
 
+const dialog = useDialog()
+
 // Backup History Functions
 async function viewBackupHistory(site: Site) {
   selectedSite.value = site
@@ -204,7 +206,15 @@ async function downloadBackup(backup: Backup) {
 }
 
 async function deleteBackup(backup: Backup) {
-  if (!confirm(`Are you sure you want to delete backup "${backup.filename}"?`)) return
+  const confirmed = await dialog.confirm({
+    title: 'Delete Backup',
+    message: `Are you sure you want to permanently delete backup "${backup.filename}"? This action cannot be undone.`,
+    variant: 'danger',
+    confirmLabel: 'Delete',
+    icon: 'i-heroicons-trash'
+  })
+
+  if (!confirmed) return
   
   deletingBackup.value = backup.id
   try {
