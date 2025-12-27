@@ -221,25 +221,46 @@ const columns = [
             </div>
         </UCard>
 
-        <!-- Manual Add Form -->
-        <UCard v-if="isManualImportOpen" class="mt-4 bg-gray-50 dark:bg-gray-800/50">
-            <div class="flex justify-between items-start mb-4">
-                <h4 class="font-medium">Add Manual Site</h4>
-                <UButton icon="i-heroicons-x-mark" color="neutral" variant="ghost" size="xs" @click="isManualImportOpen = false" />
-            </div>
+        <!-- Manual Add Modal -->
+        <UModal v-model="isManualImportOpen">
+            <UCard>
+                <template #header>
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">Add Existing Site</h3>
+                        <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1" @click="isManualImportOpen = false" />
+                    </div>
+                </template>
 
-            <form @submit.prevent="addManualSite" class="space-y-4">
-                <UFormField label="Path" required help="Absolute path to WordPress root">
-                    <UInput v-model="manualSite.path" placeholder="/var/www/..." icon="i-heroicons-folder" />
-                </UFormField>
-                <UFormField label="Name" help="Friendly name for display">
-                    <UInput v-model="manualSite.name" placeholder="My Site" icon="i-heroicons-globe-alt" />
-                </UFormField>
-                <div class="flex justify-end gap-2 pt-2">
-                    <UButton color="neutral" variant="ghost" @click="isManualImportOpen = false">Cancel</UButton>
-                    <UButton type="submit" :loading="adding" color="primary">Add Site</UButton>
+                <div class="space-y-4">
+                    <p class="text-sm text-gray-500">
+                        Manually add a WordPress site by specifying its root path.
+                    </p>
+
+                    <form @submit.prevent="addManualSite" class="space-y-4">
+                        <UFormField label="Site Name" required help="Friendly name for display">
+                             <UInput v-model="manualSite.name" placeholder="My Site" icon="i-heroicons-globe-alt" autofocus />
+                        </UFormField>
+
+                        <UFormField label="Root Path" required help="Absolute path to WordPress root directory">
+                            <UInput v-model="manualSite.path" placeholder="/var/www/html/example.com" icon="i-heroicons-folder" />
+                        </UFormField>
+                    </form>
                 </div>
-            </form>
-        </UCard>
+
+                <template #footer>
+                    <div class="flex justify-end gap-2">
+                        <UButton color="neutral" variant="ghost" @click="isManualImportOpen = false">Cancel</UButton>
+                        <UButton 
+                            @click="addManualSite" 
+                            :loading="adding" 
+                            color="primary"
+                            icon="i-heroicons-check-circle"
+                        >
+                            Validate & Add
+                        </UButton>
+                    </div>
+                </template>
+            </UCard>
+        </UModal>
     </div>
 </template>
