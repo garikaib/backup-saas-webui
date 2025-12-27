@@ -9,6 +9,8 @@ const columns = [
     { id: 'id', accessorKey: 'id', header: 'ID' },
     { id: 'hostname', accessorKey: 'hostname', header: 'Hostname' },
     { id: 'ip_address', accessorKey: 'ip_address', header: 'IP Address' },
+    { id: 'stats', header: 'Resources' },
+    { id: 'active_backups', accessorKey: 'active_backups', header: 'Backups' },
     { id: 'storage_quota_gb', accessorKey: 'storage_quota_gb', header: 'Quota (GB)' },
     { id: 'status', accessorKey: 'status', header: 'Status' },
     { id: 'actions', header: 'Actions' }
@@ -61,12 +63,38 @@ async function approveNode(id: number) {
                 </button>
             </template>
             
+            <template #stats-cell="{ row }">
+                <div class="space-y-1 w-32">
+                    <div v-if="row.original.cpu_usage !== undefined" class="flex items-center gap-2 text-xs">
+                        <span class="w-8">CPU</span>
+                        <UProgress :value="row.original.cpu_usage" color="primary" size="xs" />
+                        <span class="w-8 text-right">{{ row.original.cpu_usage }}%</span>
+                    </div>
+                    <div v-if="row.original.disk_usage !== undefined" class="flex items-center gap-2 text-xs">
+                        <span class="w-8">Disk</span>
+                        <UProgress :value="row.original.disk_usage" :color="row.original.disk_usage > 90 ? 'error' : 'primary'" size="xs" />
+                        <span class="w-8 text-right">{{ row.original.disk_usage }}%</span>
+                    </div>
+                </div>
+            </template>
+            
+            <template #active_backups-cell="{ row }">
+                <div v-if="row.original.active_backups" class="flex items-center gap-1 text-primary-500 font-medium">
+                     <UIcon name="i-heroicons-arrow-path" class="w-4 h-4 animate-spin" />
+                     {{ row.original.active_backups }} Running
+                </div>
+                <span v-else class="text-gray-400 text-sm">—</span>
+            </template>
+            
             <template #storage_quota_gb-cell="{ row }">
                 <span class="font-mono">{{ row.original.storage_quota_gb }} GB</span>
             </template>
             
             <template #status-cell="{ row }">
                 <NodeStatusBadge :status="row.original.status" />
+                <div v-if="row.original.last_seen" class="text-xs text-gray-400 mt-1">
+                    {{ new Date(row.original.last_seen).toLocaleTimeString() }}
+                </div>
             </template>
             
             <template #actions-cell="{ row }">

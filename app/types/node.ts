@@ -9,6 +9,10 @@ export interface NodeResponse {
     ip_address: string | null
     status: 'pending' | 'active' | 'blocked'
     storage_quota_gb: number
+    cpu_usage?: number
+    disk_usage?: number
+    active_backups?: number
+    last_seen?: string
 }
 
 export interface NodeDetailResponse extends NodeResponse {
