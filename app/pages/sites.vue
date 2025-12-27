@@ -189,6 +189,17 @@ async function viewBackupHistory(site: Site) {
 async function downloadBackup(backup: Backup) {
   try {
     const response = await client<DownloadBackupResponse>(`/backups/${backup.id}/download`)
+    
+    // Check if download URL is valid
+    if (!response.download_url) {
+      toast.add({
+        title: 'Backup Unavailable',
+        description: 'This backup file no longer exists in storage. It may have been deleted externally.',
+        color: 'error'
+      })
+      return
+    }
+    
     window.open(response.download_url, '_blank')
     toast.add({
       title: 'Download Started',
@@ -377,7 +388,7 @@ const columns = [
     </UPageBody>
 
     <!-- Backup History Modal -->
-    <UModal v-model="isBackupHistoryOpen">
+    <UModal v-model="isBackupHistoryOpen" title="Backup History" description="View and manage your backup files">
       <UCard>
         <template #header>
             <div class="flex items-center justify-between">
@@ -396,10 +407,19 @@ const columns = [
         </div>
 
         <div v-else class="space-y-3 max-h-[60vh] overflow-y-auto">
-          <div v-for="backup in siteBackups" :key="backup.id" class="p-4 border rounded-lg dark:border-gray-700">
+          <div v-for="backup in siteBackups" :key="backup.id" 
+            class="p-4 border rounded-lg dark:border-gray-700"
+            :class="{ 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20': !backup.s3_path }"
+          >
             <div class="flex justify-between items-start gap-4">
               <div class="flex-1 min-w-0">
-                <h4 class="font-medium truncate">{{ backup.filename }}</h4>
+                <div class="flex items-center gap-2">
+                  <h4 class="font-medium truncate">{{ backup.filename }}</h4>
+                  <UBadge v-if="!backup.s3_path" color="error" variant="subtle" size="xs">
+                    <UIcon name="i-heroicons-exclamation-triangle" class="w-3 h-3 mr-1" />
+                    Missing
+                  </UBadge>
+                </div>
                 <div class="flex flex-wrap gap-2 mt-2 text-xs text-gray-500">
                   <span class="flex items-center gap-1">
                     <UIcon name="i-heroicons-calendar" class="w-3 h-3" />
@@ -424,10 +444,12 @@ const columns = [
               <div class="flex gap-2 shrink-0">
                 <UButton 
                   size="xs" 
-                  color="primary" 
+                  :color="backup.s3_path ? 'primary' : 'neutral'" 
                   variant="soft" 
                   icon="i-heroicons-arrow-down-tray"
+                  :disabled="!backup.s3_path"
                   @click="downloadBackup(backup)"
+                  :title="backup.s3_path ? 'Download backup' : 'Backup file missing from storage'"
                 />
                 <UButton 
                   v-if="authStore.isSuperAdmin"
