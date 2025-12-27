@@ -45,21 +45,23 @@ function getUsageColor(percent?: number) {
 
             <!-- Stats Grid -->
             <template v-else>
-                 <!-- Resources -->
+                <!-- Resources -->
                  <div class="space-y-3 pt-2">
                     <div class="space-y-1">
                         <div class="flex justify-between text-xs text-gray-500">
                              <span>CPU</span>
-                             <span>{{ node.cpu_usage || 0 }}%</span>
+                             <span>{{ node.cpu_usage !== undefined ? node.cpu_usage + '%' : 'N/A' }}</span>
                         </div>
-                        <UProgress :value="node.cpu_usage || 0" :color="getUsageColor(node.cpu_usage)" size="xs" />
+                        <UProgress v-if="node.cpu_usage !== undefined" :value="node.cpu_usage" :color="getUsageColor(node.cpu_usage)" size="xs" />
+                        <div v-else class="h-1 bg-gray-100 dark:bg-gray-800 rounded-full w-full"></div>
                     </div>
                     <div class="space-y-1">
                         <div class="flex justify-between text-xs text-gray-500">
                              <span>Disk</span>
-                             <span>{{ node.disk_usage || 0 }}%</span>
+                             <span>{{ node.disk_usage !== undefined ? node.disk_usage + '%' : 'N/A' }}</span>
                         </div>
-                        <UProgress :value="node.disk_usage || 0" :color="getUsageColor(node.disk_usage)" size="xs" />
+                        <UProgress v-if="node.disk_usage !== undefined" :value="node.disk_usage" :color="getUsageColor(node.disk_usage)" size="xs" />
+                        <div v-else class="h-1 bg-gray-100 dark:bg-gray-800 rounded-full w-full"></div>
                     </div>
                  </div>
 
