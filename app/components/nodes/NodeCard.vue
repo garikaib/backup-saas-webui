@@ -31,21 +31,32 @@ const emit = defineEmits<{
                 <UButton block color="primary" label="Approve Node" icon="i-heroicons-check-circle" @click.stop="emit('approve', node.id)" />
             </div>
 
-            <!-- Active Node Stats -->
-            <template v-else>
-                 <!-- Stats Grid -->
-                 <div class="grid grid-cols-2 gap-3 pt-2">
-                     <div class="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                         <div class="text-xs text-gray-500 mb-1">Storage Quota</div>
-                         <div class="font-bold text-lg text-gray-900 dark:text-white">{{ node.storage_quota_gb }}<span class="text-sm font-normal text-gray-400 ml-1">GB</span></div>
-                     </div>
-                     <div class="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                         <div class="text-xs text-gray-500 mb-1">Node ID</div>
-                         <div class="font-bold text-lg text-gray-900 dark:text-white">#{{ node.id }}</div>
+                <!-- Resources -->
+                 <div class="space-y-3 pt-2">
+                     <div class="px-1">
+                        <QuotaProgressBar 
+                            label="Storage Quota" 
+                            :usage-gb="node.storage_used_gb || (node.disk_usage ? (node.disk_usage / 100 * node.storage_quota_gb) : 0)" 
+                            :quota-gb="node.storage_quota_gb"
+                            :show-value="true"
+                        />
                      </div>
                  </div>
 
-                 <!-- Click prompt -->
+                 <!-- Footer Stats -->
+                 <div class="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100 dark:border-gray-800 mt-2">
+                     <div class="text-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded">
+                         <div class="text-xs text-gray-500">Node ID</div>
+                         <div class="font-semibold text-sm">#{{ node.id }}</div>
+                     </div>
+                     <div class="text-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded">
+                         <div class="text-xs text-gray-500">Active Jobs</div>
+                         <div class="font-semibold text-sm flex items-center justify-center gap-1">
+                             <span v-if="node.active_backups" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                             {{ node.active_backups || 0 }}
+                         </div>
+                     </div>
+                 </div>
                  <div class="flex items-center justify-center gap-2 text-xs text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-800">
                     <UIcon name="i-heroicons-cursor-arrow-rays" class="w-4 h-4" />
                     <span>Click for details & live metrics</span>

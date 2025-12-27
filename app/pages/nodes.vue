@@ -16,7 +16,7 @@ const { data: nodesData, refresh, status } = await useAsyncData('nodes-combined'
         client<any>('/metrics/summary').catch(() => null) // Get real-time metrics for master node
     ])
 
-    // Merge storage stats and metrics into nodes
+    // Merge storage stats into nodes
     return nodesList.map(node => {
         const nodeStorage = storageSummary?.nodes_summary?.find((s: any) => s.node_id === node.id)
         
@@ -34,6 +34,8 @@ const { data: nodesData, refresh, status } = await useAsyncData('nodes-combined'
             ...node,
             cpu_usage: cpuUsage,
             disk_usage: diskUsage,
+            storage_used_gb: nodeStorage?.used_gb,
+            storage_quota_gb: nodeStorage?.quota_gb || node.storage_quota_gb,
             active_backups: activeBackups
         }
     })

@@ -312,11 +312,26 @@ const columns = [
               <UCard :ui="{ body: { padding: 'p-0 sm:p-0' } }">
                   <UTable 
                      :data="groupedSites[node.id] || []" 
-                     :columns="columns"
+                     :columns="[
+                       ...columns.filter(c => c.key !== 'actions'),
+                       { key: 'quota', label: 'Storage Quota' },
+                       { key: 'actions', label: 'Actions' }
+                     ]"
                      :empty-state="{ icon: 'i-heroicons-globe-alt', label: 'No sites found on this node' }"
                   >
                       <template #name-cell="{ row }">
                         <span class="font-medium">{{ row.original.name }}</span>
+                      </template>
+
+                      <template #quota-cell="{ row }">
+                        <div class="w-48">
+                            <QuotaProgressBar 
+                                :usage-gb="row.original.storage_used_gb || 0" 
+                                :quota-gb="row.original.storage_quota_gb || 0"
+                                :show-value="true"
+                                :compact="true"
+                            />
+                        </div>
                       </template>
             
                       <template #status-cell="{ row }">

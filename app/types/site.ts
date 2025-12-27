@@ -1,5 +1,6 @@
 export interface Site {
     id: number
+    uuid?: string
     name: string
     url?: string
     wp_path: string
@@ -9,6 +10,8 @@ export interface Site {
     status?: 'active' | 'inactive' | 'archived'
     last_backup?: string
     storage_used_gb?: number
+    storage_quota_gb?: number
+    storage_used_bytes?: number
 }
 
 export type SiteResponse = Site
