@@ -5,26 +5,41 @@ definePageMeta({
   layout: 'dashboard'
 })
 
-// Fetch nodes
-// Fetch nodes and storage summary
 const client = useApiClient()
+const toast = useToast()
+
+// Fetch nodes with storage and metrics data
 const { data: nodesData, refresh, status } = await useAsyncData('nodes-combined', async () => {
-    const [nodesList, storageSummary] = await Promise.all([
+    const [nodesList, storageSummary, metrics] = await Promise.all([
         client<NodeResponse[]>('/nodes/'),
-        client<any>('/storage/summary').catch(() => null)
+        client<any>('/storage/summary').catch(() => null),
+        client<any>('/metrics/summary').catch(() => null) // Get real-time metrics for master node
     ])
 
-    // Merge storage stats into nodes
+    // Merge storage stats and metrics into nodes
     return nodesList.map(node => {
         const nodeStorage = storageSummary?.nodes_summary?.find((s: any) => s.node_id === node.id)
+        
+        // For Node ID 1 (Master), merge in real-time metrics
+        let cpuUsage = undefined
+        let diskUsage = nodeStorage?.usage_percentage
+        let activeBackups = node.active_backups
+        
+        if (node.id === 1 && metrics) {
+            cpuUsage = metrics.cpu_percent !== undefined ? Math.round(metrics.cpu_percent) : undefined
+            diskUsage = metrics.disk_percent !== undefined ? Math.round(metrics.disk_percent * 10) / 10 : diskUsage
+        }
+        
         return {
             ...node,
-            disk_usage: nodeStorage ? nodeStorage.usage_percentage : undefined
+            cpu_usage: cpuUsage,
+            disk_usage: diskUsage,
+            active_backups: activeBackups
         }
     })
 })
+
 const nodes = computed(() => nodesData.value || [])
-const toast = useToast()
 
 // Modal state
 const selectedNodeId = ref<number | null>(null)
@@ -54,7 +69,7 @@ async function approveNode(id: number) {
   <div class="space-y-4">
     <div class="flex items-center justify-between">
          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Node Management</h2>
-         <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" @click="() => refresh()" />
+         <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" @click="() => refresh()" :loading="status === 'pending'" />
     </div>
 
     <!-- Grid Layout -->
@@ -68,10 +83,14 @@ async function approveNode(id: number) {
         />
     </div>
 
-    <div v-if="!nodes?.length" class="text-center py-12">
+    <div v-if="status !== 'pending' && !nodes?.length" class="text-center py-12">
         <UIcon name="i-heroicons-server" class="w-16 h-16 text-gray-300 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">No Nodes Found</h3>
         <p class="text-gray-500">Waiting for nodes to connect...</p>
+    </div>
+
+    <div v-if="status === 'pending'" class="flex justify-center py-12">
+        <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary" />
     </div>
     
     <!-- Node Detail Modal -->
