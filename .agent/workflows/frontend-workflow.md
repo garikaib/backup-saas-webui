@@ -11,6 +11,7 @@ This document defines the standard operating procedures for all frontend develop
 - **Framework**: Nuxt (latest version) with NuxtUI
 - **Dev Server**: Already running on port 3000 (DO NOT launch)
 - **Backend API Docs**: Available in `backend-api-docs/` (symlink to backend project)
+- **Backend Scripts**: Available in `backend-scripts/` (symlink to backend scripts)
 - **Frontend Docs**: Available in `frontend-docs/`
 
 ---

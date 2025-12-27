@@ -6,8 +6,24 @@ definePageMeta({
 })
 
 // Fetch nodes
+// Fetch nodes and storage summary
 const client = useApiClient()
-const { data: nodes, refresh } = await useAsyncData('nodes-list', () => client<NodeResponse[]>('/nodes/'))
+const { data: nodesData, refresh, status } = await useAsyncData('nodes-combined', async () => {
+    const [nodesList, storageSummary] = await Promise.all([
+        client<NodeResponse[]>('/nodes/'),
+        client<any>('/storage/summary').catch(() => null)
+    ])
+
+    // Merge storage stats into nodes
+    return nodesList.map(node => {
+        const nodeStorage = storageSummary?.nodes_summary?.find((s: any) => s.node_id === node.id)
+        return {
+            ...node,
+            disk_usage: nodeStorage ? nodeStorage.usage_percentage : undefined
+        }
+    })
+})
+const nodes = computed(() => nodesData.value || [])
 const toast = useToast()
 
 // Modal state
