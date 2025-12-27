@@ -9,18 +9,6 @@ const emit = defineEmits<{
     'click': [node: NodeResponse]
     'approve': [id: number]
 }>()
-
-function formatTime(dateStr?: string) {
-    if (!dateStr) return 'Never'
-    return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
-
-function getUsageColor(percent?: number) {
-    if (!percent) return 'primary'
-    if (percent > 90) return 'error'
-    if (percent > 75) return 'warning'
-    return 'primary'
-}
 </script>
 
 <template>
@@ -28,60 +16,39 @@ function getUsageColor(percent?: number) {
         <div class="space-y-4">
             <!-- Header -->
             <div class="flex justify-between items-start">
-                <div>
+                <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
-                         <UIcon name="i-heroicons-server" class="w-5 h-5 text-gray-500 group-hover:text-primary-500 transition-colors" />
+                         <UIcon name="i-heroicons-server-stack" class="w-5 h-5 text-gray-400 group-hover:text-primary-500 transition-colors flex-shrink-0" />
                          <span class="font-semibold text-lg text-gray-900 dark:text-white truncate">{{ node.hostname }}</span>
                     </div>
-                    <div class="text-sm text-gray-500 font-mono mt-1">{{ node.ip_address || 'No IP' }}</div>
+                    <div class="text-sm text-gray-500 font-mono mt-1 truncate">{{ node.ip_address || 'IP not set' }}</div>
                 </div>
-                <NodeStatusBadge :status="node.status" />
+                <NodesNodeStatusBadge :status="node.status" class="flex-shrink-0" />
             </div>
 
             <!-- Pending Action -->
             <div v-if="node.status === 'pending'" class="py-2">
-                <UButton block color="primary" label="Approve Node" @click.stop="emit('approve', node.id)" />
+                <UButton block color="primary" label="Approve Node" icon="i-heroicons-check-circle" @click.stop="emit('approve', node.id)" />
             </div>
 
-            <!-- Stats Grid -->
+            <!-- Active Node Stats -->
             <template v-else>
-                <!-- Resources -->
-                 <div class="space-y-3 pt-2">
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs text-gray-500">
-                             <span>CPU</span>
-                             <span>{{ node.cpu_usage !== undefined ? node.cpu_usage + '%' : 'N/A' }}</span>
-                        </div>
-                        <UProgress v-if="node.cpu_usage !== undefined" :value="node.cpu_usage" :color="getUsageColor(node.cpu_usage)" size="xs" />
-                        <div v-else class="h-1 bg-gray-100 dark:bg-gray-800 rounded-full w-full"></div>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs text-gray-500">
-                             <span>Disk</span>
-                             <span>{{ node.disk_usage !== undefined ? node.disk_usage + '%' : 'N/A' }}</span>
-                        </div>
-                        <UProgress v-if="node.disk_usage !== undefined" :value="node.disk_usage" :color="getUsageColor(node.disk_usage)" size="xs" />
-                        <div v-else class="h-1 bg-gray-100 dark:bg-gray-800 rounded-full w-full"></div>
-                    </div>
-                 </div>
-
-                 <!-- Footer Stats -->
-                 <div class="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100 dark:border-gray-800 mt-2">
-                     <div class="text-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded">
-                         <div class="text-xs text-gray-500">Quota</div>
-                         <div class="font-semibold text-sm">{{ node.storage_quota_gb }} GB</div>
+                 <!-- Stats Grid -->
+                 <div class="grid grid-cols-2 gap-3 pt-2">
+                     <div class="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                         <div class="text-xs text-gray-500 mb-1">Storage Quota</div>
+                         <div class="font-bold text-lg text-gray-900 dark:text-white">{{ node.storage_quota_gb }}<span class="text-sm font-normal text-gray-400 ml-1">GB</span></div>
                      </div>
-                     <div class="text-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded">
-                         <div class="text-xs text-gray-500">Active Jobs</div>
-                         <div class="font-semibold text-sm flex items-center justify-center gap-1">
-                             <span v-if="node.active_backups" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                             {{ node.active_backups || 0 }}
-                         </div>
+                     <div class="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                         <div class="text-xs text-gray-500 mb-1">Node ID</div>
+                         <div class="font-bold text-lg text-gray-900 dark:text-white">#{{ node.id }}</div>
                      </div>
                  </div>
 
-                 <div class="text-xs text-right text-gray-400">
-                    Last seen: {{ formatTime(node.last_seen) }}
+                 <!-- Click prompt -->
+                 <div class="flex items-center justify-center gap-2 text-xs text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <UIcon name="i-heroicons-cursor-arrow-rays" class="w-4 h-4" />
+                    <span>Click for details & live metrics</span>
                  </div>
             </template>
         </div>
