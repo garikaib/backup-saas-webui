@@ -10,6 +10,7 @@ export interface NodeResponse {
     status: 'pending' | 'active' | 'blocked'
     storage_quota_gb: number
     cpu_usage?: number
+    memory_usage?: number
     disk_usage?: number
     active_backups?: number
     last_seen?: string

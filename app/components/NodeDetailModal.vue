@@ -70,10 +70,13 @@ function setupStream() {
         es.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data)
-                if (node.value && data.cpu) {
-                    node.value.cpu_usage = data.cpu.usage_percent
-                    // Map other real-time stats if needed
-                    // node.value.disk_usage = data.disks?.[0]?.percent_used
+                if (node.value) {
+                    if (data.cpu) node.value.cpu_usage = data.cpu.usage_percent
+                    if (data.memory) node.value.memory_usage = data.memory.percent_used
+                    // Map system disk usage (first disk)
+                    if (data.disks && data.disks.length > 0) {
+                        node.value.disk_usage = data.disks[0].percent_used
+                    }
                 }
             } catch (e) {
                 // Ignore parse errors
