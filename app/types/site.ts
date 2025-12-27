@@ -4,6 +4,7 @@ export interface Site {
     name: string
     url?: string
     wp_path: string
+    db_name?: string | null
     node_id?: number
     created_at?: string
     // Frontend helper props
@@ -30,6 +31,7 @@ export interface SiteScanResult {
     db_user?: string
     db_host?: string
     table_prefix?: string
+    uuid?: string
     is_complete: boolean
 }
 

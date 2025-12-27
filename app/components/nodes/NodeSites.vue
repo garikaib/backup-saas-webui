@@ -38,7 +38,17 @@ async function triggerNodeScan() {
             query: { node_id: props.nodeId }
         })
         if (response.success) {
-            scanResults.value = response.sites
+            // Filter out already imported sites
+            const existingSites = sitesData.value?.sites || []
+            const existingUuids = new Set(existingSites.map(s => s.uuid).filter(Boolean))
+            const existingPaths = new Set(existingSites.map(s => s.wp_path))
+
+            scanResults.value = response.sites.filter(site => {
+                if (site.uuid && existingUuids.has(site.uuid)) return false
+                if (existingPaths.has(site.path)) return false
+                return true
+            })
+            
             scannedPath.value = response.scanned_path
             isScanModalOpen.value = true
         }
