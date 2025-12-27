@@ -81,6 +81,28 @@ function setupStream() {
                         node.value.disk_total_gb = parseFloat((disk.total_bytes / 1073741824).toFixed(1))
                         node.value.disk_used_gb = parseFloat((disk.used_bytes / 1073741824).toFixed(1))
                     }
+                    
+                    // Advanced Metrics
+                    if (data.uptime_seconds) node.value.uptime_seconds = data.uptime_seconds
+                    if (data.cpu) {
+                        node.value.load_avg = {
+                            one: data.cpu.load_avg_1min,
+                            five: data.cpu.load_avg_5min,
+                            fifteen: data.cpu.load_avg_15min
+                        }
+                    }
+                    if (data.memory) {
+                        node.value.swap_percent = data.memory.swap_percent
+                        node.value.ram_total_bytes = data.memory.total_bytes
+                        node.value.ram_used_bytes = data.memory.used_bytes
+                    }
+                    if (data.network) {
+                        node.value.network = {
+                            bytes_sent: data.network.bytes_sent,
+                            bytes_recv: data.network.bytes_recv,
+                            connections: data.network.connections_count
+                        }
+                    }
                 }
             } catch (e) {
                 // Ignore parse errors

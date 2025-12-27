@@ -16,6 +16,21 @@ export interface NodeResponse {
     disk_used_gb?: number
     active_backups?: number
     last_seen?: string
+    // Advanced Metrics
+    uptime_seconds?: number
+    load_avg?: {
+        one: number
+        five: number
+        fifteen: number
+    }
+    ram_total_bytes?: number
+    ram_used_bytes?: number
+    swap_percent?: number
+    network?: {
+        bytes_sent: number
+        bytes_recv: number
+        connections: number
+    }
 }
 
 export interface NodeDetailResponse extends NodeResponse {
