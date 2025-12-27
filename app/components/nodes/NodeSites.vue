@@ -86,7 +86,7 @@ async function importSite(site: SiteScanResult) {
 }
 
 // Manual Import Logic
-const isManualImportOpen = ref(false)
+const showAddSiteModal = ref(false)
 const manualSite = reactive<ManualAddRequest>({
     path: '',
     name: '',
@@ -99,7 +99,7 @@ function openManualImport() {
     manualSite.name = ''
     manualSite.node_id = props.nodeId
     manualSite.wp_config_path = ''
-    isManualImportOpen.value = true
+    showAddSiteModal.value = true
 }
 
 async function addManualSite() {
@@ -114,7 +114,7 @@ async function addManualSite() {
         })
         if (response.success) {
             toast.add({ title: 'Success', description: 'Site added', color: 'success' })
-            isManualImportOpen.value = false
+            showAddSiteModal.value = false
             refreshSites()
             emit('updated')
         }
@@ -222,12 +222,13 @@ const columns = [
         </UCard>
 
         <!-- Manual Add Modal -->
-        <UModal v-model="isManualImportOpen">
+        <!-- Manual Add Modal -->
+        <UModal v-model="showAddSiteModal">
             <UCard>
                 <template #header>
                     <div class="flex items-center justify-between">
                         <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">Add Existing Site</h3>
-                        <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1" @click="isManualImportOpen = false" />
+                        <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1" @click="showAddSiteModal = false" />
                     </div>
                 </template>
 
@@ -249,7 +250,7 @@ const columns = [
 
                 <template #footer>
                     <div class="flex justify-end gap-2">
-                        <UButton color="neutral" variant="ghost" @click="isManualImportOpen = false">Cancel</UButton>
+                        <UButton color="neutral" variant="ghost" @click="showAddSiteModal = false">Cancel</UButton>
                         <UButton 
                             @click="addManualSite" 
                             :loading="adding" 
