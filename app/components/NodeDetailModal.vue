@@ -31,11 +31,91 @@ const isSuperAdmin = computed(() => currentUser.value?.role === 'super_admin')
 const node = ref<NodeDetailResponse | null>(null)
 const nodeStatus = ref<'idle' | 'pending' | 'success' | 'error'>('idle')
 
+// SSE Stream state
+const eventSource = ref<EventSource | null>(null)
+const authStore = useAuthStore()
+
+function closeStream() {
+    if (eventSource.value) {
+        eventSource.value.close()
+        eventSource.value = null
+    }
+}
+
+function setupStream() {
+    closeStream() // Close existing stream if any
+    
+    // Only stream for Master Node (ID 1)
+    if (props.nodeId !== 1) return
+
+    const token = authStore.token
+    if (!token) return
+
+    const config = useRuntimeConfig()
+    const apiBase = config.public.apiBase
+    // Ensure apiBase doesn't have trailing slash for proper concatenation if needed, 
+    // but useApiClient usually handles it. Here we need raw URL.
+    // Assuming apiBase is full URL like https://api.example.com/api/v1
+    // If apiBase is not available, default to specific logic or hardcoded for now based on user context
+    // User context: https://wp.zimpricecheck.com:8081/api/v1
+    
+    const streamUrl = `${apiBase}/metrics/node/stream?token=${token}&interval=2`
+    
+    // Check if browser supports EventSource
+    if (typeof EventSource === 'undefined') return
+
+    try {
+        const es = new EventSource(streamUrl)
+        
+        es.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data)
+                if (node.value && data.cpu) {
+                    node.value.cpu_usage = data.cpu.usage_percent
+                    // Map other real-time stats if needed
+                    // node.value.disk_usage = data.disks?.[0]?.percent_used
+                }
+            } catch (e) {
+                // Ignore parse errors
+            }
+        }
+        
+        es.onerror = () => {
+            es.close()
+        }
+        
+        eventSource.value = es
+    } catch (e) {
+        console.error('SSE Connection failed', e)
+    }
+}
+
+// Ensure stream is closed when component unmounts or modal closes
+onUnmounted(() => closeStream())
+watch(() => props.open, (isOpen) => {
+    if (!isOpen) closeStream()
+    else if (props.nodeId === 1) setupStream() // Re-setup if opening master
+})
+
 async function refreshNode() {
   if (!props.nodeId) return
   nodeStatus.value = 'pending'
   try {
-    node.value = await client<NodeDetailResponse>(`/nodes/${props.nodeId}`)
+    const nodeData = await client<NodeDetailResponse>(`/nodes/${props.nodeId}`)
+    
+    // Setup stream if Master
+    if (props.nodeId === 1) {
+        setupStream()
+        // Initial fetch for immediate data before stream kicks in
+        try {
+            const metrics = await client<any>('/metrics/summary')
+            nodeData.cpu_usage = metrics.cpu_percent
+        } catch (e) { /* ignore */ }
+    } else {
+        closeStream()
+    }
+    
+    node.value = nodeData
     nodeStatus.value = 'success'
   } catch {
     nodeStatus.value = 'error'
@@ -103,7 +183,7 @@ function handleSitesUpdated() {
 <template>
   <UModal v-model:open="isOpen" class="max-w-5xl" title="Node Dashboard" description="Full view of node performance and sites">
     <template #content>
-      <UCard :ui="{ body: { padding: 'px-6 py-6' } }">
+      <UCard>
         <template #header>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
@@ -134,12 +214,12 @@ function handleSitesUpdated() {
                     <div class="text-xs text-gray-500 mb-1">Storage Quota</div>
                     <div v-if="!isEditingQuota" class="flex items-center justify-end gap-2">
                         <span class="font-mono font-bold text-lg">{{ node?.storage_quota_gb || 0 }} GB</span>
-                        <UButton v-if="isSuperAdmin" icon="i-heroicons-pencil" size="2xs" color="neutral" variant="ghost" @click="startEditQuota" />
+                        <UButton v-if="isSuperAdmin" icon="i-heroicons-pencil" size="xs" color="neutral" variant="ghost" @click="startEditQuota" />
                     </div>
                     <div v-else class="flex items-center gap-2">
                         <UInput v-model="newQuota" type="number" size="xs" class="w-20" />
-                        <UButton size="2xs" icon="i-heroicons-check" color="success" @click="saveQuota" :loading="savingQuota" />
-                        <UButton size="2xs" icon="i-heroicons-x-mark" color="neutral" variant="ghost" @click="isEditingQuota = false" />
+                        <UButton size="xs" icon="i-heroicons-check" color="success" @click="saveQuota" :loading="savingQuota" />
+                        <UButton size="xs" icon="i-heroicons-x-mark" color="neutral" variant="ghost" @click="isEditingQuota = false" />
                     </div>
                 </div>
 

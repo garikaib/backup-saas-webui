@@ -23,7 +23,7 @@ function getDashOffset(percent: number) {
 <template>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- CPU Gauge -->
-        <UCard :ui="{ body: { padding: 'p-4' } }">
+        <UCard>
             <div class="flex items-center justify-between mb-2">
                  <div class="text-sm font-medium text-gray-500">CPU Load</div>
                  <UIcon name="i-heroicons-cpu-chip" class="w-5 h-5 text-gray-400" />
@@ -36,24 +36,26 @@ function getDashOffset(percent: number) {
                             stroke="currentColor" stroke-width="8" fill="transparent"
                             class="text-gray-200 dark:text-gray-700"
                         />
-                        <circle
-                            cx="48" cy="48" :r="radius"
-                            :stroke="getGaugeColor(node.cpu_usage || 0)" stroke-width="8" fill="transparent"
-                            class="transition-all duration-500 ease-out"
-                            stroke-linecap="round"
-                            :stroke-dasharray="circumference"
-                            :stroke-dashoffset="getDashOffset(node.cpu_usage || 0)"
-                        />
+                        <template v-if="node.cpu_usage !== undefined">
+                            <circle
+                                cx="48" cy="48" :r="radius"
+                                :stroke="getGaugeColor(node.cpu_usage)" stroke-width="8" fill="transparent"
+                                class="transition-all duration-500 ease-out"
+                                stroke-linecap="round"
+                                :stroke-dasharray="circumference"
+                                :stroke-dashoffset="getDashOffset(node.cpu_usage)"
+                            />
+                        </template>
                     </svg>
                     <div class="absolute inset-0 flex items-center justify-center flex-col">
-                        <span class="text-xl font-bold">{{ node.cpu_usage || 0 }}%</span>
+                        <span class="text-xl font-bold">{{ node.cpu_usage !== undefined ? node.cpu_usage + '%' : 'N/A' }}</span>
                     </div>
                 </div>
             </div>
         </UCard>
 
         <!-- Disk Usage -->
-        <UCard :ui="{ body: { padding: 'p-4' } }">
+        <UCard>
             <div class="flex items-center justify-between mb-4">
                  <div class="text-sm font-medium text-gray-500">Disk Space</div>
                  <UIcon name="i-heroicons-circle-stack" class="w-5 h-5 text-gray-400" />
@@ -81,7 +83,7 @@ function getDashOffset(percent: number) {
         </UCard>
 
         <!-- Active Jobs -->
-        <UCard :ui="{ body: { padding: 'p-4' } }">
+        <UCard>
             <div class="flex items-center justify-between mb-4">
                  <div class="text-sm font-medium text-gray-500">Active Jobs</div>
                  <UIcon name="i-heroicons-command-line" class="w-5 h-5 text-gray-400" />
