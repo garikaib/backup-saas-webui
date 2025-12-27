@@ -126,6 +126,10 @@ function handleClose() {
     v-model:open="isOpen" 
     :prevent-close="loading"
     @close="handleClose"
+    :ui="{ 
+      container: 'flex min-h-full items-end sm:items-center justify-center text-center p-4 sm:p-0 z-[100]',
+      overlay: { base: 'fixed inset-0 transition-opacity bg-gray-200/75 dark:bg-gray-800/75 z-[99]' }
+    }"
   >
     <template #content>
       <div class="p-6">
