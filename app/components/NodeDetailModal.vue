@@ -308,7 +308,7 @@ const tabs = [
 
 <template>
   <div>
-    <UModal v-model:open="isOpen" class="max-w-4xl">
+    <UModal v-model:open="isOpen" class="max-w-4xl" title="Node Details" description="View and manage node details">
     <template #content>
       <UCard>
         <template #header>
@@ -455,7 +455,7 @@ const tabs = [
             :loading="sitesStatus === 'pending'"
           >
             <template #storage_used_gb-cell="{ row }">
-              {{ formatSize(row.original.storage_used_gb) }}
+              {{ formatSize(row.original.storage_used_gb || 0) }}
             </template>
             <template #status-cell="{ row }">
               <UBadge :color="row.original.status === 'active' ? 'success' : 'neutral'" variant="subtle">
@@ -519,7 +519,7 @@ const tabs = [
   </UModal>
 
   <!-- Scan Results Modal -->
-  <UModal v-model="isScanModalOpen" title="Scan Results">
+  <UModal v-model="isScanModalOpen" title="Scan Results" description="Sites found on node">
       <UCard>
         <template #header>
             <div class="flex justify-between items-center">
@@ -554,7 +554,7 @@ const tabs = [
   </UModal>
 
   <!-- Manual Add Modal -->
-  <UModal v-model="isManualImportOpen" title="Add Site">
+  <UModal v-model="isManualImportOpen" title="Add Site" description="Manually import site">
       <UCard>
         <template #header>
             <h3 class="font-semibold">Manual Site Import</h3>
