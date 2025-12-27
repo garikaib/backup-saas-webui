@@ -377,8 +377,14 @@ const columns = [
     </UPageBody>
 
     <!-- Backup History Modal -->
-    <UModal v-model="isBackupHistoryOpen" :title="`Backups - ${selectedSite?.name || 'Site'}`" description="View and manage backup history">
+    <UModal v-model="isBackupHistoryOpen">
       <UCard>
+        <template #header>
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold">Backups - {{ selectedSite?.name || 'Site' }}</h3>
+                <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark" size="sm" @click="isBackupHistoryOpen = false" />
+            </div>
+        </template>
         <div v-if="loadingBackups" class="flex justify-center py-12">
           <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary" />
         </div>
