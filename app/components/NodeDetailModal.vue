@@ -75,7 +75,11 @@ function setupStream() {
                     if (data.memory) node.value.memory_usage = data.memory.percent_used
                     // Map system disk usage (first disk)
                     if (data.disks && data.disks.length > 0) {
-                        node.value.disk_usage = data.disks[0].percent_used
+                        const disk = data.disks[0]
+                        node.value.disk_usage = disk.percent_used
+                        // Convert bytes to GB (1024^3)
+                        node.value.disk_total_gb = parseFloat((disk.total_bytes / 1073741824).toFixed(1))
+                        node.value.disk_used_gb = parseFloat((disk.used_bytes / 1073741824).toFixed(1))
                     }
                 }
             } catch (e) {

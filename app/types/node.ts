@@ -12,6 +12,8 @@ export interface NodeResponse {
     cpu_usage?: number
     memory_usage?: number
     disk_usage?: number
+    disk_total_gb?: number
+    disk_used_gb?: number
     active_backups?: number
     last_seen?: string
 }

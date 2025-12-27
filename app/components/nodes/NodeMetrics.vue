@@ -95,10 +95,10 @@ function getDashOffset(percent: number) {
             <div class="space-y-4">
                 <div class="flex justify-between items-end">
                     <div>
-                        <div class="text-2xl font-bold">{{ node.disk_usage !== undefined ? node.disk_usage + '%' : 'N/A' }}</div>
+                        <div class="text-2xl font-bold">{{ node.disk_used_gb ?? (node.storage_used_gb || 0) }}<span class="text-sm font-normal text-gray-500">GB</span></div>
                     </div>
                     <div class="text-right">
-                         <div class="text-xs text-gray-400">Quota: {{ node.storage_quota_gb }} GB</div>
+                         <div class="text-xs text-gray-400">of {{ node.disk_total_gb ?? node.total_available_gb }} GB</div>
                     </div>
                 </div>
                 <!-- Bar -->
@@ -109,8 +109,10 @@ function getDashOffset(percent: number) {
                         :style="{ width: `${node.disk_usage}%`, backgroundColor: getGaugeColor(node.disk_usage) }"
                     ></div>
                 </div>
-                <div class="text-xs text-gray-500 text-center">
-                    {{ node.disk_usage !== undefined ? node.disk_usage + '% Used' : 'Usage Unknown' }}
+                <!-- Details -->
+                <div class="flex justify-between text-xs text-gray-500">
+                    <span>{{ node.disk_usage !== undefined ? node.disk_usage + '% Usage' : 'N/A' }}</span>
+                    <span>Quota: {{ node.storage_quota_gb }} GB</span>
                 </div>
             </div>
         </UCard>
