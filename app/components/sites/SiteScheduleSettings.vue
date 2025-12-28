@@ -127,9 +127,8 @@ async function saveSchedule() {
         <UFormField label="Backup Frequency" help="How often should backups run automatically?">
           <USelectMenu
             v-model="frequency"
-            :options="frequencyOptions"
-            value-attribute="value"
-            option-attribute="label"
+            :items="frequencyOptions"
+            value-key="value"
           />
         </UFormField>
 
