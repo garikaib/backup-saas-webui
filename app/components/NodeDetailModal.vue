@@ -81,6 +81,7 @@ function setupStream() {
                         // Convert bytes to GB (1024^3)
                         node.value.disk_total_gb = parseFloat((disk.total_bytes / 1073741824).toFixed(1))
                         node.value.disk_used_gb = parseFloat((disk.used_bytes / 1073741824).toFixed(1))
+                        node.value.disk_free_gb = parseFloat(((disk.free_bytes || (disk.total_bytes - disk.used_bytes)) / 1073741824).toFixed(1))
                     }
                     
                     // Advanced Metrics
@@ -162,7 +163,7 @@ async function refreshNode() {
     
     // Map stats from new backend API
     if (nodeData.stats && nodeData.stats.length > 0) {
-        const stats = nodeData.stats![0]
+        const stats = nodeData.stats[0]!
         nodeData.cpu_usage = stats.cpu_usage
         nodeData.disk_usage = stats.disk_usage
         nodeData.active_backups = stats.active_backups

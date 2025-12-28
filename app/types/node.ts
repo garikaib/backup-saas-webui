@@ -22,6 +22,7 @@ export interface NodeResponse {
     disk_usage?: number
     disk_total_gb?: number
     disk_used_gb?: number
+    disk_free_gb?: number
     storage_used_gb?: number // Mapped from storage summary or API
     active_backups?: number
     last_seen?: string
