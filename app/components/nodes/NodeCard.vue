@@ -44,13 +44,19 @@ const emit = defineEmits<{
                  </div>
 
                  <!-- Footer Stats -->
-                 <div class="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100 dark:border-gray-800 mt-2">
+                 <div class="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 dark:border-gray-800 mt-2">
                      <div class="text-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded">
-                         <div class="text-xs text-gray-500">Node ID</div>
+                         <div class="text-xs text-gray-500">ID</div>
                          <div class="font-semibold text-sm">#{{ node.id }}</div>
                      </div>
                      <div class="text-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded">
-                         <div class="text-xs text-gray-500">Active Jobs</div>
+                         <div class="text-xs text-gray-500">CPU</div>
+                         <div class="font-semibold text-sm" :class="{'text-red-500': (node.cpu_usage || 0) > 80}">
+                             {{ node.cpu_usage !== undefined ? node.cpu_usage + '%' : 'N/A' }}
+                         </div>
+                     </div>
+                     <div class="text-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded">
+                         <div class="text-xs text-gray-500">Jobs</div>
                          <div class="font-semibold text-sm flex items-center justify-center gap-1">
                              <span v-if="node.active_backups" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                              {{ node.active_backups || 0 }}

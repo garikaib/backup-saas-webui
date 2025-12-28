@@ -133,14 +133,18 @@ async function refreshNode() {
   try {
     const nodeData = await client<NodeDetailResponse>(`/nodes/${props.nodeId}`)
     
+    // Map stats from new backend API
+    if (nodeData.stats && nodeData.stats.length > 0) {
+        const stats = nodeData.stats![0]
+        nodeData.cpu_usage = stats.cpu_usage
+        nodeData.disk_usage = stats.disk_usage
+        nodeData.active_backups = stats.active_backups
+    }
+
     // Setup stream if Master
     if (props.nodeId === 1) {
         setupStream()
-        // Initial fetch for immediate data before stream kicks in
-        try {
-            const metrics = await client<any>('/metrics/summary')
-            nodeData.cpu_usage = metrics.cpu_percent
-        } catch (e) { /* ignore */ }
+        // /metrics/summary call removed as stats are now available in nodeData
     } else {
         closeStream()
     }

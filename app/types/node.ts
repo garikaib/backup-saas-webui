@@ -3,12 +3,20 @@ export interface NodeSimple {
     hostname: string
 }
 
+export interface NodeStats {
+    cpu_usage: number
+    disk_usage: number
+    active_backups: number
+}
+
 export interface NodeResponse {
     id: number
     hostname: string
     ip_address: string | null
     status: 'pending' | 'active' | 'blocked'
     storage_quota_gb: number
+    stats?: NodeStats[]
+    // Legacy fields (optional/deprecated)
     cpu_usage?: number
     memory_usage?: number
     disk_usage?: number

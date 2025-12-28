@@ -11,38 +11,45 @@ const authStore = useAuthStore()
 
 // Fetch nodes with storage and metrics data
 const { data: nodesData, refresh, status } = await useAsyncData('nodes-combined', async () => {
-    const [nodesList, storageSummary, metrics] = await Promise.all([
+    const [nodesList, storageSummary] = await Promise.all([
         client<NodeResponse[]>('/nodes/'),
-        client<any>('/storage/summary').catch(() => null),
-        client<any>('/metrics/summary').catch(() => null) // Get real-time metrics for master node
+        client<any>('/storage/summary').catch(() => null)
     ])
 
-    // Merge storage stats into nodes
+    // Merge stats and storage summary
     return nodesList.map(node => {
         const nodeStorage = storageSummary?.nodes_summary?.find((s: any) => s.node_id === node.id)
         
-        // For Node ID 1 (Master), merge in real-time metrics
-        let cpuUsage = undefined
-        let diskUsage = nodeStorage?.usage_percentage
-        let activeBackups = node.active_backups
-        
-        if (node.id === 1 && metrics) {
-            cpuUsage = metrics.cpu_percent !== undefined ? Math.round(metrics.cpu_percent) : undefined
-            diskUsage = metrics.disk_percent !== undefined ? Math.round(metrics.disk_percent * 10) / 10 : diskUsage
-        }
+        // Map stats from new backend API (latest entry)
+        const stats = node.stats && node.stats.length > 0 ? node.stats[0] : null
         
         return {
             ...node,
-            cpu_usage: cpuUsage,
-            disk_usage: diskUsage,
+            cpu_usage: stats?.cpu_usage ?? 0,
+            disk_usage: stats?.disk_usage ?? 0,
+            active_backups: stats?.active_backups ?? 0,
             storage_used_gb: nodeStorage?.used_gb,
             storage_quota_gb: nodeStorage?.quota_gb || node.storage_quota_gb,
-            active_backups: activeBackups
         }
     })
 })
 
 const nodes = computed(() => nodesData.value || [])
+
+// Polling for live updates (every 30s)
+let pollInterval: NodeJS.Timeout | null = null
+
+onMounted(() => {
+    pollInterval = setInterval(() => {
+        refresh()
+    }, 30000)
+    // Refresh immediately on mount to be sure
+    refresh()
+})
+
+onUnmounted(() => {
+    if (pollInterval) clearInterval(pollInterval)
+})
 
 // Modal state
 const selectedNodeId = ref<number | null>(null)
