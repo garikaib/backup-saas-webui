@@ -61,7 +61,7 @@ const emit = defineEmits<{
                     <UIcon name="i-heroicons-cursor-arrow-rays" class="w-4 h-4" />
                     <span>Click for details & live metrics</span>
                  </div>
-            </template>
+
         </div>
     </UCard>
 </template>

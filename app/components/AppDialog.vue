@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PropType } from 'vue'
+import { DialogTitle, DialogDescription } from 'reka-ui'
 
 export interface DialogProps {
   open: boolean
@@ -149,12 +150,12 @@ function handleClose() {
 
           <!-- Content -->
           <div class="flex-1 min-w-0">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            <DialogTitle as="h3" class="text-lg font-semibold text-gray-900 dark:text-white">
               {{ title }}
-            </h3>
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            </DialogTitle>
+            <DialogDescription as="p" class="mt-2 text-sm text-gray-600 dark:text-gray-400">
               {{ message }}
-            </p>
+            </DialogDescription>
           </div>
 
           <!-- Close Button -->

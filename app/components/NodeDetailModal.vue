@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { NodeDetailResponse } from '~/types/node'
 import type { UserResponse } from '~/types/user'
+import { DialogTitle, DialogDescription } from 'reka-ui'
 
 const props = defineProps<{
   nodeId: number | null
@@ -220,10 +221,11 @@ function handleSitesUpdated() {
                   <UIcon name="i-heroicons-server-stack" class="w-8 h-8 text-primary-600 dark:text-primary-400" />
                </div>
                <div>
-                  <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <DialogTitle as="h2" class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                       {{ node?.hostname || 'Loading...' }}
-                      <NodeStatusBadge v-if="node" :status="node.status" />
-                  </h2>
+                      <NodesNodeStatusBadge v-if="node" :status="node.status" />
+                  </DialogTitle>
+                  <DialogDescription class="sr-only">Detailed view of node performance, sites, and backups.</DialogDescription>
                   <div class="flex gap-4 text-sm text-gray-500 mt-1">
                       <span class="flex items-center gap-1">
                           <UIcon name="i-heroicons-globe-alt" class="w-4 h-4" />

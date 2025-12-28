@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ConfigWizard from '~/components/config-wizard/ConfigWizard.vue'
+
 const colorMode = useColorMode()
 
 const color = computed(() => colorMode.value === 'dark' ? '#020618' : 'white')
@@ -19,9 +21,9 @@ useHead({
 
 useSeoMeta({
   titleTemplate: '%s - Backup Admin',
-  ogImage: 'https://ui.nuxt.com/assets/templates/nuxt/saas-light.png',
-  twitterImage: 'https://ui.nuxt.com/assets/templates/nuxt/saas-light.png',
-  twitterCard: 'summary_large_image'
+  ogSiteName: 'Backup Admin',
+  description: 'Centralized backup management for your WordPress infrastructure',
+  twitterCard: 'summary'
 })
 
 const { data: navigation } = await useAsyncData('navigation', () => queryCollectionNavigation('docs'), {
@@ -50,6 +52,14 @@ const links = [{
 }]
 
 provide('navigation', navigation)
+
+const autoLogout = useAutoLogout()
+onMounted(() => {
+  autoLogout.init()
+})
+onUnmounted(() => {
+  autoLogout.destroy()
+})
 </script>
 
 <template>
@@ -72,5 +82,7 @@ provide('navigation', navigation)
         :fuse="{ resultLimit: 42 }"
       />
     </ClientOnly>
+
+    <ConfigWizard />
   </UApp>
 </template>

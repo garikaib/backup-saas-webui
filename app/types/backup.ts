@@ -4,6 +4,9 @@ export interface BackupResponse {
     site_name: string
     filename: string
     size_gb: number
+    size_bytes?: number
+    s3_path?: string
+    storage_provider?: string
     created_at: string
     backup_type: 'full' | 'incremental'
     status: string

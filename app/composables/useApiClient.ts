@@ -27,6 +27,16 @@ export const useApiClient = () => {
                 return
             }
 
+            // Handle 403 Forbidden
+            if (response.status === 403) {
+                const msg = response._data?.detail || 'You do not have permission to perform this action.'
+                toast.add({
+                    title: 'Access Denied',
+                    description: typeof msg === 'string' ? msg : 'Permission denied.',
+                    color: 'error'
+                })
+            }
+
             // Handle Server Errors (5xx)
             if (response.status >= 500) {
                 const msg = response._data?.detail || response.statusText || 'Server Error'

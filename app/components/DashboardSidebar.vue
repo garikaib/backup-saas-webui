@@ -13,31 +13,39 @@ const links = computed<NavigationMenuItem[]>(() => {
             label: 'Dashboard',
             icon: 'i-heroicons-squares-2x2',
             to: '/'
-        },
-        {
-            label: 'Management',
-            type: 'label',
-            class: 'mt-4'
-        },
-        {
-            label: 'Nodes',
-            icon: 'i-heroicons-server',
-            to: '/nodes'
-        },
-        {
-            label: 'Sites',
-            icon: 'i-heroicons-globe-alt',
-            to: '/sites'
-        },
-        {
-            label: 'Users',
-            icon: 'i-heroicons-users',
-            to: '/users'
         }
     ]
 
-    // Only show Management links for Node Admin+
-    if (authStore.isNodeAdmin) {
+    // Management Section - Node Admin & Up
+    if (authStore.isNodeAdminOrHigher) {
+        items.push({
+            label: 'Management',
+            type: 'label',
+            class: 'mt-4'
+        })
+        
+        items.push(
+            {
+                label: 'Nodes',
+                icon: 'i-heroicons-server',
+                to: '/nodes'
+            },
+            {
+                label: 'Sites',
+                icon: 'i-heroicons-globe-alt',
+                to: '/sites'
+            }
+        )
+        
+        // Users - Super Admin Only
+        if (authStore.isSuperAdmin) {
+             items.push({
+                label: 'Users',
+                icon: 'i-heroicons-users',
+                to: '/users'
+            })
+        }
+
         items.push(
             {
                 label: 'Storage',
@@ -55,6 +63,20 @@ const links = computed<NavigationMenuItem[]>(() => {
                 to: '/activity-logs'
             }
         )
+    }
+    
+    // Site Admin - Sites access only
+    if (authStore.isSiteAdmin) {
+        items.push({
+            label: 'Management',
+            type: 'label',
+            class: 'mt-4'
+        })
+        items.push({
+            label: 'Sites',
+            icon: 'i-heroicons-globe-alt',
+            to: '/sites'
+        })
     }
 
     items.push(
@@ -75,7 +97,7 @@ const links = computed<NavigationMenuItem[]>(() => {
         }
     )
 
-    // Only show Admin Settings for Super Admin
+    // Admin Settings - Super Admin Only
     if (authStore.isSuperAdmin) {
         items.push(
             {

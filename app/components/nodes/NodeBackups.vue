@@ -11,7 +11,9 @@ const dialog = useDialog()
 const authStore = useAuthStore()
 
 const { data: backupsData, refresh: refreshBackups, status: backupsStatus } = await useAsyncData(
-    () => props.nodeId ? client<BackupListResponse>(`/nodes/${props.nodeId}/backups`) : Promise.resolve(null),
+    () => props.nodeId ? client<BackupListResponse>(`/nodes/${props.nodeId}/backups`, {
+        query: { skip: 0, limit: 50 }
+    }) : Promise.resolve(null),
     { watch: [() => props.nodeId] }
 )
 
@@ -42,12 +44,12 @@ function formatDate(dateStr: string) {
 }
 
 const columns = [
-  { id: 'site_name', accessorKey: 'site_name', header: 'Site' },
-  { id: 'filename', accessorKey: 'filename', header: 'Filename' },
-  { id: 'size_gb', accessorKey: 'size_gb', header: 'Size' },
-  { id: 'backup_type', accessorKey: 'backup_type', header: 'Type' },
-  { id: 'created_at', accessorKey: 'created_at', header: 'Created' },
-  { id: 'actions', header: 'Actions' }
+  { key: 'site_name', label: 'Site', id: 'site_name' },
+  { key: 'filename', label: 'Filename', id: 'filename' },
+  { key: 'size_gb', label: 'Size', id: 'size_gb' },
+  { key: 'backup_type', label: 'Type', id: 'backup_type' },
+  { key: 'created_at', label: 'Created', id: 'created_at' },
+  { key: 'actions', label: 'Actions', id: 'actions' }
 ]
 </script>
 
@@ -55,7 +57,7 @@ const columns = [
     <div class="space-y-4">
         <div class="flex justify-between items-center">
              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Backups</h3>
-             <UButton icon="i-heroicons-arrow-path" size="sm" variant="ghost" @click="refreshBackups" :loading="backupsStatus === 'pending'" />
+             <UButton icon="i-heroicons-arrow-path" size="sm" variant="ghost" @click="() => refreshBackups()" :loading="backupsStatus === 'pending'" />
         </div>
 
         <UTable :data="backupsData?.backups || []" :columns="columns" :loading="backupsStatus === 'pending'">

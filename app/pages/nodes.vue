@@ -7,6 +7,7 @@ definePageMeta({
 
 const client = useApiClient()
 const toast = useToast()
+const authStore = useAuthStore()
 
 // Fetch nodes with storage and metrics data
 const { data: nodesData, refresh, status } = await useAsyncData('nodes-combined', async () => {
@@ -88,7 +89,8 @@ async function approveNode(id: number) {
     <div v-if="status !== 'pending' && !nodes?.length" class="text-center py-12">
         <UIcon name="i-heroicons-server" class="w-16 h-16 text-gray-300 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">No Nodes Found</h3>
-        <p class="text-gray-500">Waiting for nodes to connect...</p>
+        <p v-if="authStore.isSiteAdmin" class="text-gray-500">You don't have access to any nodes.</p>
+        <p v-else class="text-gray-500">Waiting for nodes to connect...</p>
     </div>
 
     <div v-if="status === 'pending'" class="flex justify-center py-12">

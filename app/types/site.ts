@@ -13,6 +13,13 @@ export interface Site {
     storage_used_gb?: number
     storage_quota_gb?: number
     storage_used_bytes?: number
+    backup_count?: number
+    // Scheduling props
+    schedule_frequency?: 'manual' | 'daily' | 'weekly' | 'monthly'
+    schedule_time?: string
+    schedule_days?: string
+    retention_copies?: number
+    next_run_at?: string
 }
 
 export type SiteResponse = Site
@@ -47,10 +54,14 @@ export interface BackupStatus {
     site_id: number
     site_name: string
     status: 'idle' | 'running' | 'completed' | 'failed' | 'stopped'
-    progress: number
+    progress: number  // 0-100
     message: string
+    stage: string | null
+    stage_detail: string | null
+    bytes_processed: number
+    bytes_total: number
     error: string | null
-    started_at?: string
+    started_at: string | null  // ISO datetime
 }
 
 export interface ImportSiteRequest {
@@ -108,4 +119,18 @@ export interface DownloadBackupResponse {
     provider: string
     download_url: string
     expires_in_seconds: number
+}
+
+export interface VerifySiteRequest {
+    path: string
+    node_id: number
+}
+
+export interface VerifySiteResponse {
+    success: boolean
+    is_valid: boolean
+    site_name?: string
+    db_name?: string
+    message?: string
+    error?: string
 }
