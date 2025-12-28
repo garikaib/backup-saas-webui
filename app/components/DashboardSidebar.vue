@@ -53,8 +53,8 @@ const links = computed<NavigationMenuItem[]>(() => {
                 to: '/storage'
             },
             {
-                label: 'Jobs',
-                icon: 'i-heroicons-command-line',
+                label: 'Backup Activity',
+                icon: 'i-heroicons-archive-box',
                 to: '/jobs'
             },
             {
