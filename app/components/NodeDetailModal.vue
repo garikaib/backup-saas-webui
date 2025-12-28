@@ -120,16 +120,43 @@ function setupStream() {
     }
 }
 
-// Ensure stream is closed when component unmounts or modal closes
-onUnmounted(() => closeStream())
+// Polling for remote nodes
+let pollInterval: NodeJS.Timeout | null = null
+
+function startPolling() {
+    stopPolling()
+    // Poll every 30 seconds for non-master nodes
+    if (props.nodeId !== 1) {
+        pollInterval = setInterval(refreshNode, 30000)
+    }
+}
+
+function stopPolling() {
+    if (pollInterval) {
+        clearInterval(pollInterval)
+        pollInterval = null
+    }
+}
+
 watch(() => props.open, (isOpen) => {
-    if (!isOpen) closeStream()
-    else if (props.nodeId === 1) setupStream() // Re-setup if opening master
+    if (!isOpen) {
+        closeStream()
+        stopPolling()
+    } else {
+        if (props.nodeId === 1) setupStream()
+        else startPolling()
+    }
+})
+
+// Ensure cleanup
+onUnmounted(() => {
+    closeStream()
+    stopPolling()
 })
 
 async function refreshNode() {
   if (!props.nodeId) return
-  nodeStatus.value = 'pending'
+  if (nodeStatus.value === 'idle' || nodeStatus.value === 'error') nodeStatus.value = 'pending'
   try {
     const nodeData = await client<NodeDetailResponse>(`/nodes/${props.nodeId}`)
     
@@ -141,12 +168,9 @@ async function refreshNode() {
         nodeData.active_backups = stats.active_backups
     }
 
-    // Setup stream if Master
-    if (props.nodeId === 1) {
+    // Setup stream if Master (only on first load/change)
+    if (props.nodeId === 1 && !eventSource.value) {
         setupStream()
-        // /metrics/summary call removed as stats are now available in nodeData
-    } else {
-        closeStream()
     }
     
     node.value = nodeData
@@ -157,8 +181,11 @@ async function refreshNode() {
 }
 
 watch(() => props.nodeId, async (newId) => {
+  stopPolling()
+  closeStream()
   if (newId) {
-    refreshNode()
+    await refreshNode()
+    if (props.open && newId !== 1) startPolling()
   }
 }, { immediate: true })
 

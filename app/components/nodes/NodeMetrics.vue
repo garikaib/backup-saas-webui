@@ -96,8 +96,8 @@ function generatePath(key: 'rx_speed' | 'tx_speed') {
     return `M ${points.join(' L ')}`
 }
 
-const currentRx = computed(() => networkHistory.value.length ? networkHistory.value[networkHistory.value.length-1].rx_speed : 0)
-const currentTx = computed(() => networkHistory.value.length ? networkHistory.value[networkHistory.value.length-1].tx_speed : 0)
+const currentRx = computed(() => networkHistory.value.length > 0 ? networkHistory.value[networkHistory.value.length-1].rx_speed : 0)
+const currentTx = computed(() => networkHistory.value.length > 0 ? networkHistory.value[networkHistory.value.length-1].tx_speed : 0)
 
 </script>
 
@@ -133,7 +133,7 @@ const currentTx = computed(() => networkHistory.value.length ? networkHistory.va
             </UCard>
     
             <!-- Memory Gauge -->
-            <UCard>
+            <UCard v-if="node.memory_usage !== undefined">
                 <div class="flex items-center justify-between mb-2">
                      <div class="text-sm font-medium text-gray-500">RAM Usage</div>
                      <UIcon name="i-heroicons-bolt" class="w-5 h-5 text-gray-400" />
@@ -159,30 +159,30 @@ const currentTx = computed(() => networkHistory.value.length ? networkHistory.va
             <!-- Disk Usage -->
             <UCard>
                 <div class="flex items-center justify-between mb-4">
-                     <div class="text-sm font-medium text-gray-500">System Disk</div>
+                     <div class="text-sm font-medium text-gray-500">Storage Usage</div>
                      <UIcon name="i-heroicons-circle-stack" class="w-5 h-5 text-gray-400" />
                 </div>
                 <div class="space-y-4">
                     <div class="flex justify-between items-end">
                         <div>
-                            <div class="text-2xl font-bold">{{ node.disk_used_gb ?? (node.storage_used_gb || 0) }}<span class="text-sm font-normal text-gray-500">GB</span></div>
+                            <div class="text-2xl font-bold">{{ node.storage_used_gb || node.disk_used_gb || 0 }}<span class="text-sm font-normal text-gray-500">GB</span></div>
                         </div>
                         <div class="text-right">
-                             <div class="text-xs text-gray-400">of {{ node.disk_total_gb ?? node.total_available_gb }} GB</div>
+                             <div class="text-xs text-gray-400">of {{ node.storage_quota_gb }} GB Quota</div>
                         </div>
                     </div>
                     <div class="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div v-if="node.disk_usage !== undefined" class="h-full transition-all duration-500" :style="{ width: `${node.disk_usage}%`, backgroundColor: getGaugeColor(node.disk_usage) }"></div>
+                        <div v-if="node.storage_quota_gb > 0" class="h-full transition-all duration-500" :style="{ width: `${((node.storage_used_gb || 0) / node.storage_quota_gb) * 100}%`, backgroundColor: getGaugeColor(((node.storage_used_gb || 0) / node.storage_quota_gb) * 100) }"></div>
                     </div>
                     <div class="flex justify-between text-xs text-gray-500">
-                        <span>{{ node.disk_usage !== undefined ? node.disk_usage + '% Usage' : 'N/A' }}</span>
-                        <span>Quota: {{ node.storage_quota_gb }} GB</span>
+                        <span>{{ node.storage_used_gb ? ((node.storage_used_gb / node.storage_quota_gb) * 100).toFixed(1) + '% Used' : 'N/A' }}</span>
+                        <span>Total Available: {{ node.total_available_gb }} GB</span>
                     </div>
                 </div>
             </UCard>
     
             <!-- Network & Uptime -->
-            <UCard>
+            <UCard v-if="node.network">
                  <div class="flex items-center justify-between mb-4">
                      <div class="text-sm font-medium text-gray-500">Network Flow</div>
                      <UIcon name="i-heroicons-arrow-path" class="w-5 h-5 text-gray-400" />
@@ -215,11 +215,11 @@ const currentTx = computed(() => networkHistory.value.length ? networkHistory.va
         
         <!-- Bottom Stats Row -->
          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-             <UCard>
+             <UCard v-if="node.uptime_seconds">
                  <div class="text-xs text-gray-500">Uptime</div>
                  <div class="font-semibold">{{ formatUptime(node.uptime_seconds) }}</div>
              </UCard>
-             <UCard>
+             <UCard v-if="node.network">
                  <div class="text-xs text-gray-500">Connections</div>
                  <div class="font-semibold">{{ node.network?.connections || 0 }}</div>
              </UCard>
@@ -227,7 +227,7 @@ const currentTx = computed(() => networkHistory.value.length ? networkHistory.va
                  <div class="text-xs text-gray-500">Active Jobs</div>
                  <div class="font-semibold text-primary-500">{{ node.active_backups || 0 }}</div>
              </UCard> 
-             <UCard>
+             <UCard v-if="node.ram_total_bytes">
                  <div class="text-xs text-gray-500">Memory Total</div>
                  <div class="font-semibold">{{ formatBytes(node.ram_total_bytes) }}</div>
              </UCard>
