@@ -9,13 +9,32 @@ export interface NodeStats {
     active_backups: number
 }
 
+// Streaming stats from SSE endpoint
+export interface NodeStreamStats {
+    id: number
+    hostname: string
+    status: 'online' | 'stale' | 'offline'
+    is_master: boolean
+    cpu_percent: number | null
+    memory_percent: number | null
+    disk_percent: number | null
+    uptime_seconds: number | null
+    active_backups: number
+    last_seen: string | null
+}
+
 export interface NodeResponse {
     id: number
     hostname: string
     ip_address: string | null
-    status: 'pending' | 'active' | 'blocked'
+    status: 'pending' | 'active' | 'blocked' | 'online' | 'stale' | 'offline'
     storage_quota_gb: number
     stats?: NodeStats[]
+    // Streaming fields (from SSE)
+    is_master?: boolean
+    cpu_percent?: number | null
+    memory_percent?: number | null
+    disk_percent?: number | null
     // Legacy fields (optional/deprecated)
     cpu_usage?: number
     memory_usage?: number
@@ -23,11 +42,11 @@ export interface NodeResponse {
     disk_total_gb?: number
     disk_used_gb?: number
     disk_free_gb?: number
-    storage_used_gb?: number // Mapped from storage summary or API
+    storage_used_gb?: number
     active_backups?: number
-    last_seen?: string
+    last_seen?: string | null
     // Advanced Metrics
-    uptime_seconds?: number
+    uptime_seconds?: number | null
     load_avg?: {
         one: number
         five: number

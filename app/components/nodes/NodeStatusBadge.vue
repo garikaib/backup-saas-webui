@@ -4,12 +4,22 @@ defineProps<{
 }>()
 
 const colorMap = {
+  // Streaming statuses
+  online: 'success',
+  stale: 'warning',
+  offline: 'error',
+  // REST statuses
   active: 'success',
   pending: 'warning',
   blocked: 'error'
 } as const
 
 const labelMap = {
+  // Streaming statuses
+  online: 'Online',
+  stale: 'Stale',
+  offline: 'Offline',
+  // REST statuses
   active: 'Active',
   pending: 'Pending',
   blocked: 'Blocked'

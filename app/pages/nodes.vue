@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { NodeStreamStats } from '~/composables/useNodeStats'
 import type { NodeResponse } from '~/types/node'
 
 definePageMeta({
@@ -9,46 +10,39 @@ const client = useApiClient()
 const toast = useToast()
 const authStore = useAuthStore()
 
-// Fetch nodes with storage and metrics data
-const { data: nodesData, refresh, status } = await useAsyncData('nodes-combined', async () => {
-    const [nodesList, storageSummary] = await Promise.all([
-        client<NodeResponse[]>('/nodes/'),
-        client<any>('/storage/summary').catch(() => null)
-    ])
+// Use SSE streaming for real-time node stats
+const { nodes: streamingNodes, connected, error, reconnect } = useNodeStats(5)
 
-    // Merge stats and storage summary
-    return nodesList.map(node => {
-        const nodeStorage = storageSummary?.nodes_summary?.find((s: any) => s.node_id === node.id)
+// Fetch initial node list from REST for complete data (hostname, ip, etc)
+const { data: nodesData, refresh, status } = await useAsyncData('nodes-list', async () => {
+    return client<NodeResponse[]>('/nodes/')
+})
+
+// Merge REST data with streaming stats
+const nodes = computed(() => {
+    const baseNodes = nodesData.value || []
+    
+    return baseNodes.map(node => {
+        // Find matching streaming data
+        const streamData = streamingNodes.value.find(s => s.id === node.id)
         
-        // Map stats from new backend API (latest entry)
-        const stats = node.stats && node.stats.length > 0 ? node.stats[0] : null
-        
-        return {
-            ...node,
-            cpu_usage: stats?.cpu_usage ?? 0,
-            disk_usage: stats?.disk_usage ?? 0,
-            active_backups: stats?.active_backups ?? 0,
-            storage_used_gb: nodeStorage?.used_gb,
-            storage_quota_gb: nodeStorage?.quota_gb || node.storage_quota_gb,
+        if (streamData) {
+            return {
+                ...node,
+                // Overlay streaming stats
+                status: streamData.status,
+                is_master: streamData.is_master,
+                cpu_percent: streamData.cpu_percent,
+                memory_percent: streamData.memory_percent,
+                disk_percent: streamData.disk_percent,
+                uptime_seconds: streamData.uptime_seconds,
+                active_backups: streamData.active_backups,
+                last_seen: streamData.last_seen
+            }
         }
+        
+        return node
     })
-})
-
-const nodes = computed(() => nodesData.value || [])
-
-// Polling for live updates (every 30s)
-let pollInterval: NodeJS.Timeout | null = null
-
-onMounted(() => {
-    pollInterval = setInterval(() => {
-        refresh()
-    }, 30000)
-    // Refresh immediately on mount to be sure
-    refresh()
-})
-
-onUnmounted(() => {
-    if (pollInterval) clearInterval(pollInterval)
 })
 
 // Modal state
@@ -79,7 +73,17 @@ async function approveNode(id: number) {
   <div class="space-y-4">
     <div class="flex items-center justify-between">
          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Node Management</h2>
-         <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" @click="() => refresh()" :loading="status === 'pending'" />
+         <div class="flex items-center gap-2">
+             <span v-if="connected" class="flex items-center gap-1 text-xs text-green-600">
+                 <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                 Live
+             </span>
+             <span v-else class="flex items-center gap-1 text-xs text-yellow-600">
+                 <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                 Reconnecting...
+             </span>
+             <UButton icon="i-heroicons-arrow-path" color="neutral" variant="ghost" @click="() => { refresh(); reconnect(); }" :loading="status === 'pending'" />
+         </div>
     </div>
 
     <!-- Grid Layout -->
