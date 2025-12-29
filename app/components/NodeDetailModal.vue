@@ -272,20 +272,6 @@ function handleSitesUpdated() {
             </div>
             
             <div class="flex items-center gap-4">
-                <!-- Quota Widget -->
-                <div class="text-right hidden sm:block">
-                    <div class="text-xs text-gray-500 mb-1">Storage Quota</div>
-                    <div v-if="!isEditingQuota" class="flex items-center justify-end gap-2">
-                        <span class="font-mono font-bold text-lg">{{ node?.storage_quota_gb || 0 }} GB</span>
-                        <UButton v-if="isSuperAdmin" icon="i-heroicons-pencil" size="xs" color="neutral" variant="ghost" @click="startEditQuota" />
-                    </div>
-                    <div v-else class="flex items-center gap-2">
-                        <UInput v-model="newQuota" type="number" size="xs" class="w-20" />
-                        <UButton size="xs" icon="i-heroicons-check" color="success" @click="saveQuota" :loading="savingQuota" />
-                        <UButton size="xs" icon="i-heroicons-x-mark" color="neutral" variant="ghost" @click="isEditingQuota = false" />
-                    </div>
-                </div>
-
                 <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark" size="sm" @click="isOpen = false" />
             </div>
           </div>

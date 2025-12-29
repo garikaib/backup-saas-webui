@@ -159,13 +159,14 @@ const currentTx = computed(() => networkHistory.value.length > 0 ? networkHistor
             <!-- Disk Usage -->
             <UCard>
                 <div class="flex items-center justify-between mb-4">
-                     <div class="text-sm font-medium text-gray-500">System Disk</div>
+                     <div class="text-sm font-medium text-gray-500">Storage Usage</div>
                      <UIcon name="i-heroicons-server" class="w-5 h-5 text-gray-400" />
                 </div>
                 <div class="space-y-4">
                     <div class="flex justify-between items-end">
                         <div>
-                            <div class="text-2xl font-bold">{{ node.disk_used_gb || 0 }}<span class="text-sm font-normal text-gray-500">GB</span></div>
+                            <div class="text-2xl font-bold" v-if="node.disk_used_gb !== undefined">{{ node.disk_used_gb }}<span class="text-sm font-normal text-gray-500">GB</span></div>
+                            <div class="text-2xl font-bold" v-else>{{ node.disk_usage !== undefined ? node.disk_usage + '%' : 'N/A' }}</div>
                         </div>
                         <div class="text-right" v-if="node.disk_total_gb">
                              <div class="text-xs text-gray-400">of {{ node.disk_total_gb }} GB Total</div>
