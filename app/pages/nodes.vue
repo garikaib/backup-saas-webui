@@ -19,10 +19,13 @@ const { data: nodesData, refresh, status } = await useAsyncData('nodes-list', as
 })
 
 // Merge REST data with streaming stats
-const nodes = computed(() => {
+const allNodes = computed(() => {
     const baseNodes = nodesData.value || []
     
     return baseNodes.map(node => {
+        // Only overlay streaming stats for non-pending nodes
+        if (node.status === 'pending') return node
+        
         // Find matching streaming data
         const streamData = streamingNodes.value.find(s => s.id === node.id)
         
@@ -45,6 +48,11 @@ const nodes = computed(() => {
     })
 })
 
+// Separate pending and active nodes
+const pendingNodes = computed(() => allNodes.value.filter(n => n.status === 'pending'))
+const activeNodes = computed(() => allNodes.value.filter(n => n.status !== 'pending' && n.status !== 'blocked'))
+const blockedNodes = computed(() => allNodes.value.filter(n => n.status === 'blocked'))
+
 // Modal state
 const selectedNodeId = ref<number | null>(null)
 const isDetailModalOpen = ref(false)
@@ -61,16 +69,27 @@ function handleNodeUpdated() {
 async function approveNode(id: number) {
     try {
         await client(`/nodes/approve/${id}`, { method: 'POST' })
-        toast.add({ title: 'Success', description: `Node ${id} approved successfully.`, color: 'success' })
+        toast.add({ title: 'Node Approved', description: `Node has been activated and can now sync.`, color: 'success' })
         refresh()
-    } catch (error) {
-        toast.add({ title: 'Error', description: 'Failed to approve node.', color: 'error' })
+    } catch (error: any) {
+        toast.add({ title: 'Error', description: error?.data?.detail || 'Failed to approve node.', color: 'error' })
+    }
+}
+
+async function blockNode(id: number) {
+    try {
+        await client(`/nodes/${id}/block`, { method: 'POST' })
+        toast.add({ title: 'Node Blocked', description: `Node has been blocked.`, color: 'warning' })
+        refresh()
+    } catch (error: any) {
+        toast.add({ title: 'Error', description: error?.data?.detail || 'Failed to block node.', color: 'error' })
     }
 }
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="space-y-6">
+    <!-- Header -->
     <div class="flex items-center justify-between">
          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Node Management</h2>
          <div class="flex items-center gap-2">
@@ -86,24 +105,72 @@ async function approveNode(id: number) {
          </div>
     </div>
 
-    <!-- Grid Layout -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <NodesNodeCard
-            v-for="node in (Array.isArray(nodes) ? nodes : [])"
-            :key="node.id"
-            :node="node"
-            @click="openNodeDetail"
-            @approve="approveNode"
-        />
-    </div>
+    <!-- Pending Nodes Section -->
+    <section v-if="pendingNodes.length > 0" class="space-y-4">
+        <div class="flex items-center gap-2">
+            <UIcon name="i-heroicons-clock" class="w-5 h-5 text-yellow-500" />
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Pending Approval</h3>
+            <UBadge color="warning" variant="subtle">{{ pendingNodes.length }}</UBadge>
+        </div>
+        <p class="text-sm text-gray-500">
+            These nodes have requested to join your cluster. Verify the registration code matches what's displayed on the server console.
+        </p>
+        <div class="space-y-3">
+            <NodesPendingNodeCard 
+                v-for="node in pendingNodes" 
+                :key="node.id"
+                :node="node"
+                @approve="approveNode"
+                @block="blockNode"
+            />
+        </div>
+    </section>
 
-    <div v-if="status !== 'pending' && !nodes?.length" class="text-center py-12">
+    <!-- Active Nodes Section -->
+    <section class="space-y-4">
+        <div class="flex items-center gap-2" v-if="pendingNodes.length > 0">
+            <UIcon name="i-heroicons-server-stack" class="w-5 h-5 text-green-500" />
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Active Nodes</h3>
+            <UBadge color="success" variant="subtle">{{ activeNodes.length }}</UBadge>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <NodesNodeCard
+                v-for="node in activeNodes"
+                :key="node.id"
+                :node="node"
+                @click="openNodeDetail"
+                @approve="approveNode"
+            />
+        </div>
+    </section>
+
+    <!-- Blocked Nodes Section (Collapsed) -->
+    <section v-if="blockedNodes.length > 0" class="space-y-4">
+        <UAccordion :items="[{ label: `Blocked Nodes (${blockedNodes.length})`, slot: 'blocked' }]" variant="soft" color="neutral">
+            <template #blocked>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-2">
+                    <NodesNodeCard
+                        v-for="node in blockedNodes"
+                        :key="node.id"
+                        :node="node"
+                        @click="openNodeDetail"
+                        @approve="approveNode"
+                    />
+                </div>
+            </template>
+        </UAccordion>
+    </section>
+
+    <!-- Empty State -->
+    <div v-if="status !== 'pending' && !allNodes?.length" class="text-center py-12">
         <UIcon name="i-heroicons-server" class="w-16 h-16 text-gray-300 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">No Nodes Found</h3>
         <p v-if="authStore.isSiteAdmin" class="text-gray-500">You don't have access to any nodes.</p>
         <p v-else class="text-gray-500">Waiting for nodes to connect...</p>
     </div>
 
+    <!-- Loading State -->
     <div v-if="status === 'pending'" class="flex justify-center py-12">
         <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary" />
     </div>

@@ -11,7 +11,8 @@ const colorMap = {
   // REST statuses
   active: 'success',
   pending: 'warning',
-  blocked: 'error'
+  blocked: 'error',
+  inactive: 'neutral'
 } as const
 
 const labelMap = {
@@ -22,7 +23,8 @@ const labelMap = {
   // REST statuses
   active: 'Active',
   pending: 'Pending',
-  blocked: 'Blocked'
+  blocked: 'Blocked',
+  inactive: 'Inactive'
 }
 </script>
 

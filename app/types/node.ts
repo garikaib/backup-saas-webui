@@ -27,7 +27,8 @@ export interface NodeResponse {
     id: number
     hostname: string
     ip_address: string | null
-    status: 'pending' | 'active' | 'blocked' | 'online' | 'stale' | 'offline'
+    status: 'pending' | 'active' | 'blocked' | 'inactive' | 'online' | 'stale' | 'offline'
+    registration_code?: string | null  // Present when pending
     storage_quota_gb: number
     stats?: NodeStats[]
     // Streaming fields (from SSE)
